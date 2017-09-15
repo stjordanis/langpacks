@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+
+echo ".libPaths( c( \"$ROOTDIR/dependencies\", \"/usr/local/lib/R/site-library-langserver\", .libPaths()))" > ~/.Rprofile
+
+exec Rscript $ROOTDIR/run_all_tests.r

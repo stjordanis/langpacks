@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+DEBIAN_FRONTEND=noninteractive
+
+apt-get -y update
+apt-get install -y libcurl4-gnutls-dev # This is needed for RCurl
+apt-get -y upgrade
+
+# We want pacman, rjson, and base64enc to be in the docker image. The others can be bind mounted
+# in the normal location which we now make sure is empty
+mkdir -p /usr/local/lib/R/site-library-langserver
+chown algo:algo -R /usr/local/lib/R/site-library-langserver
+
+sudo su algo -c 'echo ".libPaths( c( \"/usr/local/lib/R/site-library-langserver\", .libPaths()))" > ~/.Rprofile'
+
+sudo su algo -c 'Rscript -e "install.packages(\"pacman\"); library(pacman); p_install(\"rjson\"); p_install(\"base64enc\")"'
+
+# We want to allow the algo user to install packages system-wide
+mkdir /usr/local/lib/R/site-library
+chown algo:algo -R /usr/local/lib/R/site-library

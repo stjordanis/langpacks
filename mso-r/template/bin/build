@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -e
+
+ROOTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+
+echo ".libPaths( c( \"/usr/local/lib/R/site-library\", \"/usr/local/lib/R/site-library-langserver\", .libPaths()))" > ~/.Rprofile
+
+# First install the latest CRAN packages system wide so it can populate the shared cache
+python $ROOTDIR/bin/rip.py --file $ROOTDIR/packages.txt --cran-latest --output-dependencies /tmp/cran-dependencies-1
+
+# Make the directory that will store all the packages necessary to run the algo
+mkdir `pwd`/dependencies # If this directory already exists, weird things could happen
+
+# Copy the packages from the system wide location to our local dependencies directory
+python $ROOTDIR/bin/copy-cran-packages.py --lib /usr/local/lib/R/site-library --file /tmp/cran-dependencies-1 --destination `pwd`/dependencies
+
+# Now when we install all other packages, we want them to go into the local dependencies directory
+echo ".libPaths( c( \"`pwd`/dependencies\", \"/usr/local/lib/R/site-library\", \"/usr/local/lib/R/site-library-langserver\", .libPaths()))" > ~/.Rprofile
+
+# Re-run the package installation but only take non-latest CRAN packages
+python $ROOTDIR/bin/rip.py --file $ROOTDIR/packages.txt --skip-cran-latest --output-dependencies /tmp/cran-dependencies-2 --library `pwd`/dependencies
+
+# Copy any dependencies from the system wide location to our local dependencies directory
+python $ROOTDIR/bin/copy-cran-packages.py --lib /usr/local/lib/R/site-library --file /tmp/cran-dependencies-2 --destination `pwd`/dependencies
+
+zip -r algorithm.zip *
