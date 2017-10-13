@@ -1,0 +1,3 @@
+#!/bin/bash
+# This is a no-op. Rust's crate dependencies get static linked
+# so there is nothing to bake into the 'deps-only' image

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+cargo build --release
+
+mkdir -p bin
+mv target/release/pipe bin/pipe
